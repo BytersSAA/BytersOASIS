@@ -408,7 +408,7 @@
             function startFuelDecrease() {
                 fuelDecreaseInterval = setInterval(() => {
                 if (!isDocked && fuel > 0) {
-                    fuel -= 5; // Decrease fuel level
+                    fuel -= 2; // Decrease fuel level
                     updateFuelLevel();
                 } else {
                     stopFuelDecrease(); // Stop decreasing fuel if docked or fuel is 0
