@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Animation</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background: #000;
+        }
+
+        .scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle, #000, #222);
+        }
+
+        .rocket {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 1s ease;
+        }
+
+        .rocket img {
+            width: 50px;
+        }
+
+        .rocket .boost {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: orange;
+            border-radius: 50%;
+            animation: boost 0.5s infinite alternate;
+            opacity: 0;
+        }
+
+        @keyframes boost {
+            0% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateX(-50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .fuel-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+        }
+
+        .fuel-bar {
+            height: 100%;
+            background: #f00;
+            border-radius: 8px;
+            transition: width 0.2s ease;
+            flex-grow: 1;
+        }
+
+        .fuel-percentage {
+            color: #fff;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+
+        .fuel-warning, .fuel-full-warning {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f00;
+            font-size: 16px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .fuel-full-warning {
+            color: #0f0;
+            display: none;
+            bottom: 100px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #555;
+        }
+
+        button.disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .planet {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #888, #444);
+            animation: rotate 10s linear infinite;
+        }
+
+        .planet1 {
+            top: 20%;
+            left: 5%;
+            background: radial-gradient(circle, #f88, #900);
+        }
+
+        .planet2 {
+            top: 40%;
+            left: 5%;
+            background: radial-gradient(circle, #8f8, #090);
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fly {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-100vh);
+            }
+        }
+
+        .flying {
+            animation: fly 10s linear infinite;
+        }
+
+        @keyframes dock {
+            0% {
+                bottom: 80px;
+                transform: translateX(-50%);
+            }
+            100% {
+                bottom: 120px;
+                transform: translateX(-50%) scale(0.8);
+            }
+        }
+
+        @keyframes undock {
+            0% {
+                bottom: 120px;
+                transform: translateX(-50%) scale(0.8);
+            }
+            100% {
+                bottom: 80px;
+                transform: translateX(-50%);
+            }
+        }
+
+        .docked {
+            animation: dock 1s forwards;
+        }
+
+        .undocked {
+            animation: undock 1s forwards;
+        }
+
+        .twinkle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle 1.5s linear infinite;
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.5);
+            }
+            100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+        }
+
+        .twinkle:nth-child(even) {
+            animation-duration: 2s;
+            animation-delay: 0.5s;
+        }
+
+        .twinkle:nth-child(odd) {
+            animation-duration: 1s;
+            animation-delay: 1s;
+        }
+
+        .refuel-station {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 20px;
+            background: #555;
+            color: #fff;
+            text-align: center;
+            line-height: 20px;
+            border-top: 3px solid #f00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="scene">
+        <!-- Rocket -->
+        <div class="rocket" id="rocket">
+            <img src="rocket.png" alt="Rocket">
+            <div class="boost"></div>
+        </div>
+
+        <!-- Fuel Bar -->
+        <div class="fuel-container">
+            <div class="fuel-bar" id="fuelBar"></div>
+            <div class="fuel-percentage" id="fuelPercentage">100%</div>
+        </div>
+        <div class="fuel-warning" id="fuelWarning">Fuel is low!</div>
+        <div class="fuel-full-warning" id="fuelFullWarning">Fuel is full!</div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="dockButton">Dock</button>
+            <button id="undockButton">Undock</button>
+            <button id="refuelButton">Refuel</button>
+            
+        </div>
+
+        <!-- Planets -->
+        <div class="planet planet1"></div>
+        <div class="planet planet2"></div>
+
+        <!-- Stars -->
+        <div class="twinkle" style="top: 10%; left: 10%; width: 2px; height: 2px;"></div>
+        <div class="twinkle" style="top: 30%; left: 20%; width: 3px; height: 3px;"></div>
+        <div class="twinkle" style="top: 50%; left: 30%; width: 2px; height: 2px;"></div>
+        <div class="twinkle" style="top: 70%; left: 50%; width: 1px; height: 1px;"></div>
+        <div class="twinkle" style="top: 80%; left: 70%; width: 4px; height: 4px;"></div>
+
+        <!-- Refuel Station -->
+        <div class="refuel-station">OASIS STATION</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let fuel = 100;
+            let isDocked = true;
+            let fuelingInterval;
+
+            const fuelBar = document.getElementById('fuelBar');
+            const fuelPercentage = document.getElementById('fuelPercentage');
+            const fuelWarning = document.getElementById('fuelWarning');
+            const fuelFullWarning = document.getElementById('fuelFullWarning');
+            const dockButton = document.getElementById('dockButton');
+            const undockButton = document.getElementById('undockButton');
+            const refuelButton = document.getElementById('refuelButton');
+            //const stopFuelingButton = document.getElementById('stopFuelingButton');
+
+            function updateFuelLevel() {
+                fuelBar.style.width = fuel + '%';
+                fuelPercentage.textContent = Math.round(fuel) + '%';
+
+                if (isDocked){
+                    stopFlying();
+                    
+                    
+                }
+                if (fuel <= 5) {
+                    fuelWarning.style.display = 'block';
+                } else {
+                    fuelWarning.style.display = 'none';
+                }
+
+                if (fuel >= 100) {
+                    fuelFullWarning.style.display = 'block';
+                } else {
+                    fuelFullWarning.style.display = 'none';
+                }
+
+                if (fuel <= 0) {
+                    
+                    stopFlying();
+                    clearInterval(fuelingInterval); // Stop fueling when out of fuel
+                }
+            }
+
+            function startFueling() {
+                if (isDocked && fuel < 100) {
+                    fuelingInterval = setInterval(() => {
+                        if (fuel < 100) {
+                            fuel += 1; // Increase fuel level
+                            updateFuelLevel();
+                        } else {
+                            clearInterval(fuelingInterval);
+                        }
+                    }, 100); // Adjust the interval and increment as needed
+                }
+            }
+
+            function stopFueling() {
+                clearInterval(fuelingInterval);
+            }
+
+            function startFlying() {
+                document.getElementById('rocket').classList.add('flying');
+                document.querySelector('.boost').style.opacity = 1;
+            
+                undockButton.disabled = true; // Disable undock button while flying
+                refuelButton.classList.add('disabled'); // Disable refuel button while flying
+            }
+
+            function stopFlying() {
+                document.getElementById('rocket').classList.remove('flying');
+                document.querySelector('.boost').style.opacity = 0;
+                undockButton.disabled = false; // Enable undock button when not flying
+                refuelButton.classList.remove('disabled'); // Enable refuel button when not flying
+            }
+
+            function applyDockingAnimation() {
+                let rocket = document.getElementById('rocket');
+                rocket.classList.add('docked');
+                rocket.classList.remove('undocked', 'flying'); // Ensure no other animations are active
+                rocket.offsetHeight; // Trigger reflow
+                rocket.classList.remove('docked'); // Remove class to reset
+            }
+
+            function applyUndockingAnimation() {
+                let rocket = document.getElementById('rocket');
+                rocket.classList.add('undocked');
+                rocket.classList.remove('docked', 'flying'); // Ensure no other animations are active
+                rocket.offsetHeight; // Trigger reflow
+                rocket.classList.remove('undocked'); // Remove class to reset
+                if (fuel > 0) {
+                    startFlying(); // Start flying animation
+                }
+            }
+
+            // Function to dock the rocket
+            function dock() {
+                isDocked = true;
+                stopFuelDecrease(); // Stop fuel decrease when docked
+                updateFuelLevel();
+                refuelButton.disabled = false; // Enable refuel button when docked
+            }
+
+            // Function to undock the rocket
+            function undock() {
+                applyUndockingAnimation(); // Apply
+                startFlying();
+                isDocked = false;
+                startFuelDecrease(); // Start fuel decrease when undocked
+                refuelButton.disabled = true; // Disable refuel button when undocked
+            }
+
+            // Function to start decreasing fuel level
+            function startFuelDecrease() {
+                fuelDecreaseInterval = setInterval(() => {
+                if (!isDocked && fuel > 0) {
+                    fuel -= 5; // Decrease fuel level
+                    updateFuelLevel();
+                } else {
+                    stopFuelDecrease(); // Stop decreasing fuel if docked or fuel is 0
+                    }
+                }, 100); // Decrease fuel every 1 second
+            }
+
+            // Function to stop decreasing fuel level
+            function stopFuelDecrease() {
+                clearInterval(fuelDecreaseInterval);
+            }
+
+
+           // Event listeners for buttons
+            dockButton.addEventListener('click', () => {
+                dock();
+            });
+
+            undockButton.addEventListener('click', () => {
+                undock();
+            });
+
+            refuelButton.addEventListener('click', () => {
+               startFueling();
+        });
+
+
+
+        });
+            updateFuelLevel();
+    </script>
+</body>
+</html>
